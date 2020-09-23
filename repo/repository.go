@@ -150,6 +150,7 @@ func (r *repositoryService) Process(repo *entity.GithubRepository) error {
 	os.Chdir(r.RepoInfoExtractorPath)
 	cmd := exec.Command(scriptPath, repoPath, "--email="+strings.Join(r.Emails, ","), "--skip_upload", "--headless")
 
+	// We can use these to print repo_info_extractor output to the screen.
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &out

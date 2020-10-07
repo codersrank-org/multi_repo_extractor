@@ -13,7 +13,7 @@ func ParseFlags() Config {
 	var provider, emailString, token, repoVisibility string
 	flag.StringVar(&provider, "provider", "github.com", "Provider for repos. Only github.com is supported now.")
 	flag.StringVar(&token, "token", "", "Token for accessing repositories. You can also set this with TOKEN enviroment variable.")
-	flag.StringVar(&emailString, "emails", "", "Your emails which are used when making the commits.")
+	flag.StringVar(&emailString, "emails", "", "Your emails which are used when making the commits. Provide a comma separeted list for multiple emails (e.g. \"one@mail.com,two@email.com\")")
 	flag.StringVar(&repoVisibility, "repo_visibility", "private", "Which repos do you want to get processed? Options: all, public and private.")
 
 	flag.Parse()

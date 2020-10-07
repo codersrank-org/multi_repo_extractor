@@ -1,4 +1,4 @@
-package flag
+package config
 
 import (
 	"flag"
@@ -8,9 +8,9 @@ import (
 )
 
 // ParseFlags parses flags and enviroment variables
-func ParseFlags() (provider, token, repoVisibility, repoInfoExtractorPath string, emails []string) {
+func ParseFlags() Config {
 
-	var emailString string
+	var provider, emailString, token, repoVisibility string
 	flag.StringVar(&provider, "provider", "github.com", "Provider for repos. Only github.com is supported now.")
 	flag.StringVar(&token, "token", "", "Token for accessing repositories. You can also set this with TOKEN enviroment variable.")
 	flag.StringVar(&emailString, "emails", "", "Your emails which are used when making the commits.")
@@ -25,7 +25,8 @@ func ParseFlags() (provider, token, repoVisibility, repoInfoExtractorPath string
 		token = os.Getenv("TOKEN")
 	}
 
-	repoInfoExtractorPath = getDefaultRepoInfoExtractorPath()
+	appPath := getAppPath()
+	repoInfoExtractorPath := getDefaultRepoInfoExtractorPath(appPath)
 	// Set this if you don't want to download repo_info_extractor and want to use your local version
 	if os.Getenv("REPO_EXTRACTOR") != "" {
 		repoInfoExtractorPath = os.Getenv("REPO_EXTRACTOR")
@@ -40,6 +41,7 @@ func ParseFlags() (provider, token, repoVisibility, repoInfoExtractorPath string
 		log.Fatal("You need to provide a valid token.")
 	}
 
+	var emails []string
 	if emailString == "" {
 		log.Fatal("You need to provide at least one email.")
 	} else {
@@ -53,14 +55,35 @@ func ParseFlags() (provider, token, repoVisibility, repoInfoExtractorPath string
 		log.Fatal("Valid values for repo_visibility are: all, public and private.")
 	}
 
-	return provider, token, repoVisibility, repoInfoExtractorPath, emails
+	return Config{
+		Provider:              provider,
+		Token:                 token,
+		Emails:                emails,
+		RepoVisibility:        repoVisibility,
+		AppPath:               appPath,
+		RepoInfoExtractorPath: repoInfoExtractorPath,
+	}
 }
 
 // Default path is relative to the current directory
-func getDefaultRepoInfoExtractorPath() string {
+func getDefaultRepoInfoExtractorPath(appPath string) string {
+	return appPath + "/repo_info_extractor"
+}
+
+func getAppPath() string {
 	appPath, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
-	return appPath + "/repo_info_extractor"
+	return appPath
+}
+
+// Config flags and paths
+type Config struct {
+	Provider              string
+	Token                 string
+	Emails                []string
+	RepoVisibility        string
+	AppPath               string
+	RepoInfoExtractorPath string
 }

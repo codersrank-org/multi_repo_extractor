@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	config "github.com/codersrank-org/multi_repo_repo_extractor/config"
 	"github.com/codersrank-org/multi_repo_repo_extractor/repo/entity"
 	"github.com/go-git/go-git/v5"
 )
@@ -38,19 +39,18 @@ type repositoryService struct {
 }
 
 // NewRepositoryService constructor
-func NewRepositoryService(repoInfoExtractorPath, provider, repoVisibility, token string, emails []string) RepositoryService {
-	appPath := getAppPath()
-	saveRepoPath := getSaveRepoPath(appPath)
+func NewRepositoryService(c config.Config) RepositoryService {
+	saveRepoPath := getSaveRepoPath(c.AppPath)
 	return &repositoryService{
-		RepoInfoExtractorPath: repoInfoExtractorPath,
+		RepoInfoExtractorPath: c.RepoInfoExtractorPath,
 		RepoInfoExtractorURL:  "https://github.com/codersrank-org/repo_info_extractor",
 		GithubAPI:             "https://api.github.com/user/repos",
-		Provider:              provider,
-		RepoVisibility:        repoVisibility,
-		Token:                 token,
-		Emails:                emails,
+		Provider:              c.Provider,
+		RepoVisibility:        c.RepoVisibility,
+		Token:                 c.Token,
+		Emails:                c.Emails,
 		SaveRepoPath:          saveRepoPath,
-		AppPath:               appPath,
+		AppPath:               c.AppPath,
 	}
 }
 

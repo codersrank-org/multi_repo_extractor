@@ -4,7 +4,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/codersrank-org/multi_repo_repo_extractor/flag"
+	"github.com/codersrank-org/multi_repo_repo_extractor/config"
 	repo "github.com/codersrank-org/multi_repo_repo_extractor/repo"
 	upload "github.com/codersrank-org/multi_repo_repo_extractor/upload"
 )
@@ -13,10 +13,10 @@ func main() {
 
 	// TODO implement auto-update (versioning etc.)
 
-	provider, token, repoVisibility, repoInfoExtractorPath, emails := flag.ParseFlags()
+	config := config.ParseFlags()
 
-	repositoryService := repo.NewRepositoryService(repoInfoExtractorPath, provider, repoVisibility, token, emails)
-	codersrankService := upload.NewCodersrankService()
+	repositoryService := repo.NewRepositoryService(config)
+	codersrankService := upload.NewCodersrankService(config)
 
 	repositoryService.InitRepoInfoExtractor()
 	repos := repositoryService.GetReposFromProvider()

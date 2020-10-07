@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 
+	config "github.com/codersrank-org/multi_repo_repo_extractor/config"
 	"github.com/codersrank-org/multi_repo_repo_extractor/upload/entity"
 	"github.com/pkg/browser"
 )
@@ -28,21 +29,23 @@ type codersrankService struct {
 	UploadRepoURL   string
 	UploadResultURL string
 	ProcessURL      string
+	AppPath         string
 }
 
 // NewCodersrankService constructor
-func NewCodersrankService() CodersrankService {
+func NewCodersrankService(c config.Config) CodersrankService {
 	return &codersrankService{
 		UploadRepoURL:   "https://grpcgateway.codersrank.io/candidate/privaterepo/Upload",
 		UploadResultURL: "https://grpcgateway.codersrank.io/multi/repo/results",
 		ProcessURL:      "https://profile.codersrank.io/repo?multiToken=",
+		AppPath:         c.AppPath,
 	}
 }
 
 func (c *codersrankService) UploadRepo(repoID string) (string, error) {
 
 	// Read file
-	filename := fmt.Sprintf("%s/%s.zip", getSaveResultPath(), repoID)
+	filename := fmt.Sprintf("%s/%s.zip", c.getSaveResultPath(), repoID)
 	file, err := os.Open(filename)
 	if err != nil {
 		return "", err
@@ -137,12 +140,8 @@ func (c *codersrankService) ProcessResults(resultToken string) {
 	browser.OpenURL(browserURL)
 }
 
-func getSaveResultPath() string {
-	appPath, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	resultPath := appPath + "/results"
+func (c *codersrankService) getSaveResultPath() string {
+	resultPath := c.AppPath + "/results"
 	if _, err := os.Stat(resultPath); os.IsNotExist(err) {
 		os.Mkdir(resultPath, 0700)
 	}

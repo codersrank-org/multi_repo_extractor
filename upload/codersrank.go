@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 
 	config "github.com/codersrank-org/multi_repo_repo_extractor/config"
-	"github.com/codersrank-org/multi_repo_repo_extractor/upload/entity"
 	"github.com/pkg/browser"
 )
 
@@ -85,7 +84,7 @@ func (c *codersrankService) UploadRepo(repoID string) (string, error) {
 	}
 
 	// Get response and return resulting token
-	var result entity.UploadResult
+	var result CRUploadResult
 	err = json.Unmarshal(content, &result)
 	if err != nil {
 		return "", err
@@ -96,12 +95,12 @@ func (c *codersrankService) UploadRepo(repoID string) (string, error) {
 
 func (c *codersrankService) UploadResults(results map[string]string) string {
 
-	multiUpload := entity.MultiUpload{}
-	multiUpload.Results = make([]entity.UploadResultWithRepoName, len(results))
+	multiUpload := MultiUpload{}
+	multiUpload.Results = make([]CRUploadResultWithRepoName, len(results))
 
 	i := 0
 	for reponame, token := range results {
-		multiUpload.Results[i] = entity.UploadResultWithRepoName{
+		multiUpload.Results[i] = CRUploadResultWithRepoName{
 			Token:    token,
 			Reponame: reponame,
 		}
@@ -125,7 +124,7 @@ func (c *codersrankService) UploadResults(results map[string]string) string {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	var result entity.UploadResult
+	var result CRUploadResult
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		log.Fatal(err)
@@ -146,4 +145,20 @@ func (c *codersrankService) getSaveResultPath() string {
 		os.Mkdir(resultPath, 0700)
 	}
 	return resultPath
+}
+
+// CRUploadResult is the result of single repo upload
+type CRUploadResult struct {
+	Token string `json:"token"`
+}
+
+// MultiUpload is the request body
+type MultiUpload struct {
+	Results []CRUploadResultWithRepoName `json:"results"`
+}
+
+// CRUploadResultWithRepoName token-reponame pair
+type CRUploadResultWithRepoName struct {
+	Token    string `json:"token"`
+	Reponame string `json:"reponame"`
 }

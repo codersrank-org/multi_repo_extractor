@@ -1,6 +1,10 @@
 package provider_test
 
 import (
+	"io/ioutil"
+	"os"
+
+	"github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -10,13 +14,43 @@ import (
 
 var _ = Describe("Providers", func() {
 
+	p := provider.NewProvider(config.Config{
+		ProviderName:   "github.com",
+		Token:          "token",
+		RepoVisibility: "public",
+	})
+
 	Describe("Creating provider", func() {
 		It("should return with correct provider", func() {
-			provider := provider.NewProvider(config.Config{
-				ProviderName: "github.com",
-			})
-			Expect(provider).NotTo(BeNil())
+			Expect(p).NotTo(BeNil())
+		})
+	})
+
+	Describe("Getting repositories", func() {
+		httpmock.Activate()
+		httpmock.RegisterResponder("GET", "https://api.github.com/user/repos?visibility=public", httpmock.NewStringResponder(200, string(getResponseFromFile("./test_fixtures/github_public.json"))))
+		It("should get repositories of the user", func() {
+			repos := p.GetRepos()
+			Expect(len(repos)).To(Equal(20))
+			Expect(repos[0].FullName).To(Equal("alimgiray/bdd"))
+			Expect(repos[0].Name).To(Equal("bdd"))
+			Expect(repos[0].ID).To(Equal(134240628))
+			defer httpmock.DeactivateAndReset()
 		})
 	})
 
 })
+
+func getResponseFromFile(filePath string) []byte {
+	responseFile, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
+	}
+	defer responseFile.Close()
+
+	byteValue, err := ioutil.ReadAll(responseFile)
+	if err != nil {
+		panic(err)
+	}
+	return byteValue
+}

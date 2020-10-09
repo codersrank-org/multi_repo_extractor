@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	config "github.com/codersrank-org/multi_repo_repo_extractor/config"
+	"github.com/codersrank-org/multi_repo_repo_extractor/config"
 	"github.com/codersrank-org/multi_repo_repo_extractor/repo/entity"
 	"github.com/go-git/go-git/v5"
 )

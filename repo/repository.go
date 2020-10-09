@@ -2,12 +2,9 @@ package repo
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
@@ -20,127 +17,95 @@ import (
 
 // RepositoryService handles repository operations like cloning, updating and processing repos
 type RepositoryService interface {
-	InitRepoInfoExtractor()
-	GetReposFromProvider() []*entity.GithubRepository
-	Clone(repo *entity.GithubRepository) error
-	Process(repo *entity.GithubRepository) error
+	ProcessRepos(repos []*entity.Repository) []*entity.Repository
+	GetTotalRepos() int
+	GetRemainingRepos() int
+	GetCurrentRepo() *entity.Repository
 }
 
 type repositoryService struct {
 	RepoInfoExtractorPath string
 	RepoInfoExtractorURL  string
-	GithubAPI             string
-	Provider              string
+	ProviderName          string
 	RepoVisibility        string
 	Token                 string
 	Emails                []string
 	SaveRepoPath          string
 	AppPath               string
+	TotalRepos            int
+	ProcessedRepos        int
+	CurrentRepository     *entity.Repository
 }
 
 // NewRepositoryService constructor
 func NewRepositoryService(c config.Config) RepositoryService {
 	saveRepoPath := getSaveRepoPath(c.AppPath)
-	return &repositoryService{
+	repositoryService := &repositoryService{
 		RepoInfoExtractorPath: c.RepoInfoExtractorPath,
 		RepoInfoExtractorURL:  "https://github.com/codersrank-org/repo_info_extractor",
-		GithubAPI:             "https://api.github.com/user/repos",
-		Provider:              c.Provider,
+		ProviderName:          c.ProviderName,
 		RepoVisibility:        c.RepoVisibility,
 		Token:                 c.Token,
 		Emails:                c.Emails,
 		SaveRepoPath:          saveRepoPath,
 		AppPath:               c.AppPath,
 	}
+	repositoryService.initRepoInfoExtractor()
+	return repositoryService
 }
 
-func (r *repositoryService) InitRepoInfoExtractor() {
-	log.Println("Initializing repo_info_extractor..")
-	// If not exists, clone
-	// If exists just pull latest changes
-	if _, err := os.Stat(r.RepoInfoExtractorPath); os.IsNotExist(err) {
-		_, err := git.PlainClone(r.RepoInfoExtractorPath, false, &git.CloneOptions{
-			URL:      r.RepoInfoExtractorURL,
-			Progress: os.Stdout,
-		})
+func (r *repositoryService) GetTotalRepos() int {
+	return r.TotalRepos
+}
+
+func (r *repositoryService) GetRemainingRepos() int {
+	return r.TotalRepos - r.ProcessedRepos
+}
+
+func (r *repositoryService) GetCurrentRepo() *entity.Repository {
+	return r.CurrentRepository
+}
+
+func (r *repositoryService) ProcessRepos(repos []*entity.Repository) []*entity.Repository {
+	r.TotalRepos = len(repos)
+	processedRepos := make([]*entity.Repository, 0, len(repos))
+	for _, repo := range repos {
+		r.ProcessedRepos++
+		r.CurrentRepository = repo
+
+		err := r.clone(repo)
 		if err != nil {
-			log.Fatalf("Couldn't clone repo_info_extractor: %s", err.Error())
+			continue
 		}
-	} else {
-		repo, err := git.PlainOpen(r.RepoInfoExtractorPath)
+		err = r.process(repo)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("Couldn't process repo, skipping: %s, error: %s", repo.FullName, err.Error())
+			continue
 		}
-		workTree, err := repo.Worktree()
-		if err != nil {
-			log.Fatal(err)
-		}
-		// Having no new commits doesn't block us, so ignore that error
-		err = workTree.Pull(&git.PullOptions{RemoteName: "origin"})
-		if err != nil && !strings.Contains(err.Error(), "already up-to-date") {
-			log.Fatal(err)
-		}
+		processedRepos = append(processedRepos, repo)
+	}
+	return processedRepos
+}
+
+func (r *repositoryService) initRepoInfoExtractor() {
+	err := cloneRepository(r.RepoInfoExtractorURL, r.RepoInfoExtractorPath, "Repo Info Extractor")
+	if err != nil {
+		log.Fatalf("Couldn't clone repo_info_extractor: %s", err.Error())
 	}
 }
 
-func (r *repositoryService) GetReposFromProvider() []*entity.GithubRepository {
-	requestURL := fmt.Sprintf("%s?visibility=%s", r.GithubAPI, r.RepoVisibility)
-	request, err := http.NewRequest(http.MethodGet, requestURL, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", r.Token))
-
-	client := &http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
-
-	var repos []*entity.GithubRepository
-	err = json.Unmarshal([]byte(body), &repos)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return repos
-}
-
-func (r *repositoryService) Clone(repo *entity.GithubRepository) error {
+func (r *repositoryService) clone(repo *entity.Repository) error {
 	// Username is not important, we can use anything as long as it's not an empty string
-	repoURL := fmt.Sprintf("https://%s:%s@%s/%s", "username", r.Token, r.Provider, repo.FullName)
+	repoURL := fmt.Sprintf("https://%s:%s@%s/%s", "username", r.Token, r.ProviderName, repo.FullName)
 	repoPath := r.SaveRepoPath + "/" + repo.FullName
-	if _, err := os.Stat(repoPath); os.IsNotExist(err) {
-		log.Printf("Cloning %s", repo.FullName)
-		_, err := git.PlainClone(repoPath, false, &git.CloneOptions{
-			URL:      repoURL,
-			Progress: os.Stdout, // TODO add verbose flag to show/hide these.
-		})
-		if err != nil {
-			return err
-		}
-	} else {
-		// If exists, pull latest changes
-		log.Printf("Pulling latest changes for %s", repo.FullName)
-		repo, err := git.PlainOpen(repoPath)
-		if err != nil {
-			return err
-		}
-		workTree, err := repo.Worktree()
-		if err != nil {
-			return err
-		}
-		err = workTree.Pull(&git.PullOptions{RemoteName: "origin"})
-		if err != nil && !strings.Contains(err.Error(), "already up-to-date") && !strings.Contains(err.Error(), "worktree contains unstaged changes") {
-			return err
-		}
+	err := cloneRepository(repoURL, repoPath, repo.FullName)
+	if err != nil {
+		log.Printf("Couldn't clone/update repo, skipping: %s, error: %s", repo.FullName, err.Error())
 	}
 	return nil
 }
 
-func (r *repositoryService) Process(repo *entity.GithubRepository) error {
+func (r *repositoryService) process(repo *entity.Repository) error {
 	log.Printf("Processing %s", repo.FullName)
 
 	scriptPath := r.getScriptPath()
@@ -176,6 +141,36 @@ func (r *repositoryService) Process(repo *entity.GithubRepository) error {
 // TODO handle windows (.bat files)
 func (r *repositoryService) getScriptPath() string {
 	return r.RepoInfoExtractorPath + "/run-docker-headless.sh"
+}
+
+// Clone repository from given url to given path
+func cloneRepository(url, path, name string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		log.Printf("Cloning %s", name)
+		_, err := git.PlainClone(path, false, &git.CloneOptions{
+			URL:      url,
+			Progress: os.Stdout, // TODO add verbose flag to show/hide these.
+		})
+		if err != nil {
+			return err
+		}
+	} else {
+		// If exists, pull latest changes
+		log.Printf("Pulling latest changes for %s", name)
+		repo, err := git.PlainOpen(path)
+		if err != nil {
+			return err
+		}
+		workTree, err := repo.Worktree()
+		if err != nil {
+			return err
+		}
+		err = workTree.Pull(&git.PullOptions{RemoteName: "origin"})
+		if err != nil && !strings.Contains(err.Error(), "already up-to-date") && !strings.Contains(err.Error(), "worktree contains unstaged changes") {
+			return err
+		}
+	}
+	return nil
 }
 
 func getAppPath() string {

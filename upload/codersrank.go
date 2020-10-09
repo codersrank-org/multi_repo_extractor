@@ -12,6 +12,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
+
+	"github.com/codersrank-org/multi_repo_repo_extractor/repo/entity"
 
 	config "github.com/codersrank-org/multi_repo_repo_extractor/config"
 	"github.com/pkg/browser"
@@ -19,9 +22,7 @@ import (
 
 // CodersrankService uploads and merge results with codersrank
 type CodersrankService interface {
-	UploadRepo(repoID string) (string, error)
-	UploadResults(results map[string]string) string
-	ProcessResults(resultToken string)
+	UploadRepos(repos []*entity.Repository)
 }
 
 type codersrankService struct {
@@ -41,7 +42,21 @@ func NewCodersrankService(c config.Config) CodersrankService {
 	}
 }
 
-func (c *codersrankService) UploadRepo(repoID string) (string, error) {
+func (c *codersrankService) UploadRepos(repos []*entity.Repository) {
+	uploadResults := make(map[string]string)
+	for _, repo := range repos {
+		uploadToken, err := c.uploadRepo(strconv.Itoa(repo.ID))
+		if err != nil {
+			log.Printf("Couldn't upload processed repo: %s, error: %s", repo.FullName, err.Error())
+			continue
+		}
+		uploadResults[repo.Name] = uploadToken
+	}
+	resultToken := c.uploadResults(uploadResults)
+	c.processResults(resultToken)
+}
+
+func (c *codersrankService) uploadRepo(repoID string) (string, error) {
 
 	// Read file
 	filename := fmt.Sprintf("%s/%s.zip", c.getSaveResultPath(), repoID)
@@ -93,7 +108,7 @@ func (c *codersrankService) UploadRepo(repoID string) (string, error) {
 	return result.Token, nil
 }
 
-func (c *codersrankService) UploadResults(results map[string]string) string {
+func (c *codersrankService) uploadResults(results map[string]string) string {
 
 	multiUpload := MultiUpload{}
 	multiUpload.Results = make([]CRUploadResultWithRepoName, len(results))
@@ -134,7 +149,7 @@ func (c *codersrankService) UploadResults(results map[string]string) string {
 
 }
 
-func (c *codersrankService) ProcessResults(resultToken string) {
+func (c *codersrankService) processResults(resultToken string) {
 	browserURL := c.ProcessURL + resultToken
 	browser.OpenURL(browserURL)
 }

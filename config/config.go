@@ -56,7 +56,7 @@ func ParseFlags() Config {
 	}
 
 	return Config{
-		Provider:              provider,
+		ProviderName:          provider,
 		Token:                 token,
 		Emails:                emails,
 		RepoVisibility:        repoVisibility,
@@ -80,7 +80,7 @@ func getAppPath() string {
 
 // Config flags and paths
 type Config struct {
-	Provider              string
+	ProviderName          string
 	Token                 string
 	Emails                []string
 	RepoVisibility        string

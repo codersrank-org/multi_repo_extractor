@@ -1,6 +1,67 @@
-package entity
+package providers
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"time"
+
+	config "github.com/codersrank-org/multi_repo_repo_extractor/config"
+	"github.com/codersrank-org/multi_repo_repo_extractor/repo/entity"
+)
+
+// GithubProvider used for handling github related operations
+type GithubProvider struct {
+	GithubAPI  string
+	Token      string
+	Visibility string
+}
+
+// NewGithubProvider constructor
+func NewGithubProvider(c config.Config) *GithubProvider {
+	return &GithubProvider{
+		GithubAPI:  "https://api.github.com/user/repos",
+		Token:      c.Token,
+		Visibility: c.RepoVisibility,
+	}
+}
+
+// GetRepos returns list of repositories with given token and visibility from provider
+func (p *GithubProvider) GetRepos() []*entity.Repository {
+	requestURL := fmt.Sprintf("%s?visibility=%s", p.GithubAPI, p.Visibility)
+	request, err := http.NewRequest(http.MethodGet, requestURL, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", p.Token))
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
+
+	var githubRepos []*GithubRepository
+	err = json.Unmarshal([]byte(body), &githubRepos)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	repos := make([]*entity.Repository, len(githubRepos))
+	for i, githubRepo := range githubRepos {
+		repos[i] = &entity.Repository{
+			ID:       githubRepo.ID,
+			FullName: githubRepo.FullName,
+			Name:     githubRepo.Name,
+		}
+	}
+
+	return repos
+}
 
 // GithubRepository response from github api
 type GithubRepository struct {

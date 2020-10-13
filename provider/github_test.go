@@ -28,7 +28,7 @@ var _ = Describe("Providers", func() {
 
 	Describe("Getting repositories", func() {
 		httpmock.Activate()
-		httpmock.RegisterResponder("GET", "https://api.github.com/user/repos?visibility=public", httpmock.NewStringResponder(200, string(getResponseFromFile("./test_fixtures/github_public.json"))))
+		httpmock.RegisterResponder("GET", "https://api.github.com/user/repos?visibility=public", httpmock.NewStringResponder(200, string(getResponseFromFile("../test_fixtures/provider/github_public.json"))))
 		It("should get repositories of the user", func() {
 			repos := p.GetRepos()
 			Expect(len(repos)).To(Equal(20))

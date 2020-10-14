@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/codersrank-org/multi_repo_repo_extractor/config"
-	"github.com/codersrank-org/multi_repo_repo_extractor/repo/entity"
+	"github.com/codersrank-org/multi_repo_repo_extractor/entity"
 	"github.com/go-git/go-git/v5"
 )
 

@@ -1,4 +1,4 @@
-package providers
+package provider
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"time"
 
 	config "github.com/codersrank-org/multi_repo_repo_extractor/config"
-	"github.com/codersrank-org/multi_repo_repo_extractor/repo/entity"
+	"github.com/codersrank-org/multi_repo_repo_extractor/entity"
 )
 
 // GithubProvider used for handling github related operations

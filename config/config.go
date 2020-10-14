@@ -7,18 +7,18 @@ import (
 	"strings"
 )
 
-// ParseFlags parses flags and enviroment variables
+// ParseFlags parses flags and environment variables
 func ParseFlags() Config {
 
 	var provider, emailString, token, repoVisibility string
 	flag.StringVar(&provider, "provider", "github.com", "Provider for repos. Only github.com is supported now.")
-	flag.StringVar(&token, "token", "", "Token for accessing repositories. You can also set this with TOKEN enviroment variable.")
-	flag.StringVar(&emailString, "emails", "", "Your emails which are used when making the commits. Provide a comma separeted list for multiple emails (e.g. \"one@mail.com,two@email.com\")")
+	flag.StringVar(&token, "token", "", "Token for accessing repositories. You can also set this with TOKEN environment variable.")
+	flag.StringVar(&emailString, "emails", "", "Your emails which are used when making the commits. Provide a comma separated list for multiple emails (e.g. \"one@mail.com,two@email.com\")")
 	flag.StringVar(&repoVisibility, "repo_visibility", "private", "Which repos do you want to get processed? Options: all, public and private.")
 
 	flag.Parse()
 
-	// After getting flags, check enviroment variables
+	// After getting flags, check environment variables
 	// If there is an env_var and related variable hasn't specified as a flag, we will use it
 	// Which means flags override env_vars
 	if os.Getenv("TOKEN") != "" && token == "" {

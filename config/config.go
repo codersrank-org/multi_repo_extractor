@@ -45,7 +45,7 @@ func ParseFlags() Config {
 	if emailString == "" {
 		log.Fatal("You need to provide at least one email.")
 	} else {
-		emails := strings.Split(emailString, ",")
+		emails = strings.Split(emailString, ",")
 		for i := range emails {
 			emails[i] = strings.TrimSpace(emails[i])
 		}

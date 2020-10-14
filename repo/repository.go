@@ -124,7 +124,6 @@ func (r *repositoryService) process(repo *entity.Repository) error {
 	if err != nil {
 		return errors.New(stderr.String())
 	}
-
 	// Move result to results folder
 	sourceLocation := r.RepoInfoExtractorPath + "/repo_data.json.zip"
 	targetLocation := getSaveResultPath(r.AppPath) + "/" + repo.ID + ".zip"

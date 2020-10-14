@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	"github.com/codersrank-org/multi_repo_repo_extractor/repo/entity"
 
@@ -45,7 +44,8 @@ func NewCodersrankService(c config.Config) CodersrankService {
 func (c *codersrankService) UploadRepos(repos []*entity.Repository) {
 	uploadResults := make(map[string]string)
 	for _, repo := range repos {
-		uploadToken, err := c.uploadRepo(strconv.Itoa(repo.ID))
+		log.Printf("Uploading %s results", repo.FullName)
+		uploadToken, err := c.uploadRepo(repo.ID)
 		if err != nil {
 			log.Printf("Couldn't upload processed repo: %s, error: %s", repo.FullName, err.Error())
 			continue
@@ -127,7 +127,6 @@ func (c *codersrankService) uploadResults(results map[string]string) string {
 		log.Fatal(err)
 	}
 	req, err := http.NewRequest("POST", c.UploadResultURL, bytes.NewBuffer(b))
-	req.Header.Set("X-Custom-Header", "myvalue")
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}

@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/codersrank-org/multi_repo_repo_extractor/config"
@@ -128,7 +127,7 @@ func (r *repositoryService) process(repo *entity.Repository) error {
 
 	// Move result to results folder
 	sourceLocation := r.RepoInfoExtractorPath + "/repo_data.json.zip"
-	targetLocation := getSaveResultPath(r.AppPath) + "/" + strconv.Itoa(repo.ID) + ".zip"
+	targetLocation := getSaveResultPath(r.AppPath) + "/" + repo.ID + ".zip"
 
 	err = os.Rename(sourceLocation, targetLocation)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	config "github.com/codersrank-org/multi_repo_repo_extractor/config"
@@ -54,7 +55,7 @@ func (p *GithubProvider) GetRepos() []*entity.Repository {
 	repos := make([]*entity.Repository, len(githubRepos))
 	for i, githubRepo := range githubRepos {
 		repos[i] = &entity.Repository{
-			ID:       githubRepo.ID,
+			ID:       strconv.Itoa(githubRepo.ID),
 			FullName: githubRepo.FullName,
 			Name:     githubRepo.Name,
 		}

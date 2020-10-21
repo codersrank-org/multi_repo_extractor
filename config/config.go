@@ -10,9 +10,10 @@ import (
 // ParseFlags parses flags and environment variables
 func ParseFlags() Config {
 
-	var provider, emailString, token, repoVisibility string
+	var provider, emailString, repoVisibility, token string
+
 	flag.StringVar(&provider, "provider", "github.com", "Provider for repos. Only github.com is supported now.")
-	flag.StringVar(&token, "token", "", "Token for accessing repositories. You can also set this with TOKEN environment variable.")
+	flag.StringVar(&token, "token", "", "For accessing repositories. You can also set this with TOKEN environment variable.")
 	flag.StringVar(&emailString, "emails", "", "Your emails which are used when making the commits. Provide a comma separated list for multiple emails (e.g. \"one@mail.com,two@email.com\")")
 	flag.StringVar(&repoVisibility, "repo_visibility", "private", "Which repos do you want to get processed? Options: all, public and private.")
 
@@ -21,8 +22,16 @@ func ParseFlags() Config {
 	// After getting flags, check environment variables
 	// If there is an env_var and related variable hasn't specified as a flag, we will use it
 	// Which means flags override env_vars
-	if os.Getenv("TOKEN") != "" && token == "" {
-		token = os.Getenv("TOKEN")
+
+	token = strings.TrimSpace(token)
+
+	if len(token) == 0 {
+		if len(os.Getenv("TOKEN")) > 0 {
+			log.Printf("Taking token from env.")
+			token = os.Getenv("TOKEN")
+		} else {
+			log.Fatal("You need to provide a valid token.")
+		}
 	}
 
 	appPath := getAppPath()
@@ -34,11 +43,6 @@ func ParseFlags() Config {
 
 	if provider != "github.com" {
 		log.Fatal("Only supported provider is github.com.")
-	}
-
-	// We can add more checks here
-	if token == "" {
-		log.Fatal("You need to provide a valid token.")
 	}
 
 	var emails []string

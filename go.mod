@@ -9,4 +9,5 @@ require (
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.3
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
+	github.com/sqweek/dialog v0.0.0-20200911184034-8a3d98e8211d
 )

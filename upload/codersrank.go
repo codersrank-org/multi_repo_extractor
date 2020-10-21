@@ -17,6 +17,7 @@ import (
 
 	config "github.com/codersrank-org/multi_repo_repo_extractor/config"
 	"github.com/pkg/browser"
+	"github.com/sqweek/dialog"
 )
 
 // CodersrankService uploads and merge results with codersrank
@@ -150,7 +151,11 @@ func (c *codersrankService) uploadResults(results map[string]string) string {
 
 func (c *codersrankService) processResults(resultToken string) {
 	browserURL := c.ProcessURL + resultToken
-	browser.OpenURL(browserURL)
+
+	ok := dialog.Message("You are being navigated to '%s'. You wish to proceed?", browserURL).Title("Are you sure?").YesNo()
+	if ok {
+		browser.OpenURL(browserURL)
+	}
 }
 
 func (c *codersrankService) getSaveResultPath() string {

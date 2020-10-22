@@ -1,6 +1,7 @@
 package upload
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -12,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/codersrank-org/multi_repo_repo_extractor/entity"
 
@@ -150,9 +152,33 @@ func (c *codersrankService) uploadResults(results map[string]string) string {
 
 func (c *codersrankService) processResults(resultToken string) {
 	browserURL := c.ProcessURL + resultToken
-	browser.OpenURL(browserURL)
+	ok := confirm(fmt.Sprintf("You are being navigated to '%s'. You wish to proceed?", browserURL))
+	if ok {
+		browser.OpenURL(browserURL)
+	} else {
+		fmt.Println("Finished")
+	}
 }
+func confirm(s string) bool {
+	reader := bufio.NewReader(os.Stdin)
 
+	for {
+		fmt.Printf("%s [Y/n]: ", s)
+
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		response = strings.ToLower(strings.TrimSpace(response))
+
+		if response == "y" || response == "yes" {
+			return true
+		} else if response == "n" || response == "no" {
+			return false
+		}
+	}
+}
 func (c *codersrankService) getSaveResultPath() string {
 	resultPath := c.AppPath + "/results"
 	if _, err := os.Stat(resultPath); os.IsNotExist(err) {

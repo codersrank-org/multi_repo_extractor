@@ -18,7 +18,11 @@ $ go build .
 // TODO
 
 # Usage
-You can use pre-built binaries or you can run `go run .` in the folder after cloning this repository.
+You can use pre-built binaries or you can run `go run .` in the folder after cloning this repository. For example:
+
+```
+go run . -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repoVisibility="all" -provider="github.com"
+```
 
 ### Available flags 
 -  `-emails` string:

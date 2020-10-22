@@ -29,6 +29,13 @@ Or if you prefer using the binary:
 ./multi_repo_extractor -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repoVisibility="all" -provider="github.com"
 ```
 
+### Obtaining Token
+
+For GitHub, you can navigate to [this url](https://github.com/settings/tokens) to create your token. After clicking on `Generate new token` button, select the required scope (repo) and click on `Generate token` at the bottom of the page.
+
+![repo_scope](https://user-images.githubusercontent.com/3878783/96883860-85098200-1489-11eb-97eb-def645e1eca9.png)
+
+
 ### Available flags 
 -  `-emails` string:
         Your emails which are used when making the commits. Provide a comma separeted list for multiple emails (e.g. "one@mail.com,two@email.com")

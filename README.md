@@ -24,6 +24,11 @@ You can use pre-built binaries or you can run `go run .` in the folder after clo
 go run . -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repoVisibility="all" -provider="github.com"
 ```
 
+Or if you prefer using the binary:
+```
+./multi_repo_extractor -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repoVisibility="all" -provider="github.com"
+```
+
 ### Available flags 
 -  `-emails` string:
         Your emails which are used when making the commits. Provide a comma separeted list for multiple emails (e.g. "one@mail.com,two@email.com")

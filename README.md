@@ -10,8 +10,8 @@ use this script to analyze them at once by providing a token.
 - Optional (build from source): Golang
 ## From source
 ```
-$ git clone https://github.com/codersrank-org/multi_repo_repo_extractor
-$ cd multi_repo_repo_extractor
+$ git clone https://github.com/codersrank-org/multi_repo_extractor
+$ cd multi_repo_extractor
 $ go build .
 ```
 ## Binary

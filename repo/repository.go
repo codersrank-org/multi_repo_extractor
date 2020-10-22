@@ -146,8 +146,9 @@ func cloneRepository(url, path, name string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		log.Printf("Cloning %s", name)
 		_, err := git.PlainClone(path, false, &git.CloneOptions{
-			URL:      url,
-			Progress: os.Stdout, // TODO add verbose flag to show/hide these.
+			URL: url,
+			// TODO add verbose flag to show/hide these.
+			// Progress: os.Stdout,
 		})
 		if err != nil {
 			return err

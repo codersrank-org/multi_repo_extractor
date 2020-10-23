@@ -1,7 +1,11 @@
 package repo
 
 import (
+	"archive/zip"
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -29,6 +33,7 @@ type repositoryService struct {
 	RepoVisibility        string
 	Token                 string
 	Emails                []string
+	HashedEmails          map[string]interface{}
 	SaveRepoPath          string
 	AppPath               string
 	TotalRepos            int
@@ -49,6 +54,11 @@ func NewRepositoryService(c config.Config) RepositoryService {
 		SaveRepoPath:          saveRepoPath,
 		AppPath:               c.AppPath,
 	}
+	hashedEmails := make(map[string]interface{}, len(c.Emails))
+	for _, email := range c.Emails {
+		hashedEmails[md5Hash(email)] = nil
+	}
+	repositoryService.HashedEmails = hashedEmails
 	repositoryService.initRepoInfoExtractor()
 	return repositoryService
 }
@@ -133,7 +143,54 @@ func (r *repositoryService) process(repo *entity.Repository) error {
 		return err
 	}
 
+	// Check if provided emails are present in the repo
+	r.checkEmails(targetLocation, repo.FullName)
+
 	return nil
+}
+
+// Show user a warning if none of the provided emails found in the repository
+func (r *repositoryService) checkEmails(fileLocation, reponame string) {
+	log.Printf("Checking emails for %s", reponame)
+	zipReader, err := zip.OpenReader(fileLocation)
+	if err != nil {
+		log.Printf("Couldn't read zip file for %s", reponame)
+		return
+	}
+	defer zipReader.Close()
+	var result repoAnalysisResult
+	for _, f := range zipReader.File {
+		// We are looking for .json result file
+		if strings.Contains(f.Name, ".json") {
+			configFile, err := f.Open()
+			if err != nil {
+				log.Printf("Couldn't open zip file for %s", reponame)
+				return
+			}
+			jsonParser := json.NewDecoder(configFile)
+			if err = jsonParser.Decode(&result); err != nil {
+				log.Printf("Couldn't parse zip file %s", reponame)
+				return
+			}
+			break
+		}
+	}
+	emailExistsInResult := false
+	for _, commit := range result.Commits {
+		if _, ok := r.HashedEmails[commit.AuthorEmail]; ok {
+			emailExistsInResult = true
+			break
+		}
+	}
+	if !emailExistsInResult {
+		log.Printf("None of the provided emails %s found in repo %s", r.Emails, reponame)
+	}
+}
+
+func md5Hash(s string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(s))
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 // TODO handle windows (.bat files)
@@ -194,4 +251,31 @@ func getSaveResultPath(appPath string) string {
 		os.Mkdir(resultPath, 0700)
 	}
 	return resultPath
+}
+
+type repoAnalysisResult struct {
+	RepoName       string   `json:"repoName"`
+	LocalUsernames []string `json:"localUsernames"`
+	Remotes        struct {
+		Origin string `json:"origin"`
+	} `json:"remotes"`
+	PrimaryRemoteURL string `json:"primaryRemoteUrl"`
+	NumberOfBranches int    `json:"numberOfBranches"`
+	NumberOfTags     int    `json:"numberOfTags"`
+	Commits          []struct {
+		AuthorName   string   `json:"authorName"`
+		AuthorEmail  string   `json:"authorEmail"`
+		CreatedAt    string   `json:"createdAt"`
+		CommitHash   string   `json:"commitHash"`
+		IsMerge      bool     `json:"isMerge"`
+		Parents      []string `json:"parents"`
+		ChangedFiles []struct {
+			FileName   string `json:"fileName"`
+			Language   string `json:"language"`
+			Insertions int    `json:"insertions"`
+			Deletions  int    `json:"deletions"`
+		} `json:"changedFiles"`
+		IsDuplicated bool `json:"isDuplicated"`
+	} `json:"commits"`
+	EmailsV2 []string `json:"emails_v2"`
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gookit/color"
 	"io"
 	"io/ioutil"
 	"log"
@@ -15,10 +16,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/codersrank-org/multi_repo_repo_extractor/entity"
+	"github.com/pkg/browser"
 
 	config "github.com/codersrank-org/multi_repo_repo_extractor/config"
-	"github.com/pkg/browser"
+	"github.com/codersrank-org/multi_repo_repo_extractor/entity"
 )
 
 // CodersrankService uploads and merge results with codersrank
@@ -45,14 +46,16 @@ func NewCodersrankService(c config.Config) CodersrankService {
 
 func (c *codersrankService) UploadRepos(repos []*entity.Repository) {
 	uploadResults := make(map[string]string)
+	done := 1
 	for _, repo := range repos {
-		log.Printf("Uploading %s results", repo.FullName)
+		fmt.Printf("Uploading %s results (%d,%d)\n", color.Info.Sprint(repo.FullName), done, len(repos))
 		uploadToken, err := c.uploadRepo(repo.ID)
 		if err != nil {
-			log.Printf("Couldn't upload processed repo: %s, error: %s", repo.FullName, err.Error())
+			fmt.Printf("Couldn't upload, error: %s", err.Error())
 			continue
 		}
 		uploadResults[repo.Name] = uploadToken
+		done++
 	}
 	resultToken := c.uploadResults(uploadResults)
 	c.processResults(resultToken)
@@ -152,11 +155,11 @@ func (c *codersrankService) uploadResults(results map[string]string) string {
 
 func (c *codersrankService) processResults(resultToken string) {
 	browserURL := c.ProcessURL + resultToken
-	ok := confirm(fmt.Sprintf("You are being navigated to '%s'. You wish to proceed?", browserURL))
+	ok := confirm(fmt.Sprintf("You are being navigated to '%s'. Do you wish to proceed?", browserURL))
 	if ok {
 		browser.OpenURL(browserURL)
 	} else {
-		fmt.Println("Finished")
+		color.Success.Println("Finished")
 	}
 }
 func confirm(s string) bool {

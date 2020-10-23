@@ -18,15 +18,20 @@ $ go build .
 // TODO
 
 # Usage
-You can use pre-built binaries or you can run `go run .` in the folder after cloning this repository. For example:
-
+## TL;DR
+This will extract all the private repos from GitHub that are available by
+the given token. 
 ```
-go run . -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repoVisibility="all" -provider="github.com"
+go run . -token="{your_actual_token}" -emails="email1@example.com,email2@example.com"
 ```
-
-Or if you prefer using the binary:
+or using the binary
 ```
-./multi_repo_extractor -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repoVisibility="all" -provider="github.com"
+./multi_repo_extractor -token="{your_actual_token}" -emails="email1@example.com,email2@example.com"
+```
+## Other options
+If you want to change the default configurations you can do it like this:
+```
+./multi_repo_extractor -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repo_visibility="all" -provider="github.com"
 ```
 
 ### Obtaining Token

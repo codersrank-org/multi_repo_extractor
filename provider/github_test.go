@@ -34,7 +34,7 @@ var _ = Describe("Providers", func() {
 			Expect(len(repos)).To(Equal(20))
 			Expect(repos[0].FullName).To(Equal("alimgiray/bdd"))
 			Expect(repos[0].Name).To(Equal("bdd"))
-			Expect(repos[0].ID).To(Equal(134240628))
+			Expect(repos[0].ID).To(Equal("134240628"))
 			defer httpmock.DeactivateAndReset()
 		})
 	})

@@ -13,9 +13,11 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/go-git/go-git/v5"
+	"github.com/gookit/color"
+
 	"github.com/codersrank-org/multi_repo_repo_extractor/config"
 	"github.com/codersrank-org/multi_repo_repo_extractor/entity"
-	"github.com/go-git/go-git/v5"
 )
 
 // RepositoryService handles repository operations like cloning, updating and processing repos
@@ -81,14 +83,15 @@ func (r *repositoryService) ProcessRepos(repos []*entity.Repository) []*entity.R
 	for _, repo := range repos {
 		r.ProcessedRepos++
 		r.CurrentRepository = repo
-
+		fmt.Printf("Extracting %s (%d/%d)\n", color.Info.Sprint(repo.Name), r.ProcessedRepos, len(repos))
 		err := r.clone(repo)
 		if err != nil {
+			fmt.Printf("Couldn't clone repo. Error: %s\n", color.Danger.Sprint(err.Error()))
 			continue
 		}
 		err = r.process(repo)
 		if err != nil {
-			log.Printf("Couldn't process repo, skipping: %s, error: %s", repo.FullName, err.Error())
+			fmt.Printf("Couldn't process repo. Error: %s\n", color.Danger.Sprint(err.Error()))
 			continue
 		}
 		processedRepos = append(processedRepos, repo)
@@ -108,15 +111,10 @@ func (r *repositoryService) clone(repo *entity.Repository) error {
 	repoURL := fmt.Sprintf("https://%s:%s@%s/%s", "username", r.Token, r.ProviderName, repo.FullName)
 	repoPath := r.SaveRepoPath + "/" + repo.FullName
 	err := cloneRepository(repoURL, repoPath, repo.FullName)
-	if err != nil {
-		log.Printf("Couldn't clone/update repo, skipping: %s, error: %s", repo.FullName, err.Error())
-	}
-	return nil
+	return err
 }
 
 func (r *repositoryService) process(repo *entity.Repository) error {
-	log.Printf("Processing %s", repo.FullName)
-
 	scriptPath := r.getScriptPath()
 	repoPath := r.SaveRepoPath + "/" + repo.FullName
 
@@ -144,18 +142,16 @@ func (r *repositoryService) process(repo *entity.Repository) error {
 	}
 
 	// Check if provided emails are present in the repo
-	r.checkEmails(targetLocation, repo.FullName)
-
-	return nil
+	err = r.checkEmails(targetLocation, repo.FullName)
+	return err
 }
 
 // Show user a warning if none of the provided emails found in the repository
-func (r *repositoryService) checkEmails(fileLocation, reponame string) {
-	log.Printf("Checking emails for %s", reponame)
+func (r *repositoryService) checkEmails(fileLocation, reponame string) error {
 	zipReader, err := zip.OpenReader(fileLocation)
 	if err != nil {
-		log.Printf("Couldn't read zip file for %s", reponame)
-		return
+		err := fmt.Errorf("Couldn't read zip file for %s", reponame)
+		return err
 	}
 	defer zipReader.Close()
 	var result repoAnalysisResult
@@ -164,13 +160,13 @@ func (r *repositoryService) checkEmails(fileLocation, reponame string) {
 		if strings.Contains(f.Name, ".json") {
 			configFile, err := f.Open()
 			if err != nil {
-				log.Printf("Couldn't open zip file for %s", reponame)
-				return
+				err := fmt.Errorf("Couldn't open zip file for %s", reponame)
+				return err
 			}
 			jsonParser := json.NewDecoder(configFile)
 			if err = jsonParser.Decode(&result); err != nil {
-				log.Printf("Couldn't parse zip file %s", reponame)
-				return
+				err := fmt.Errorf("Couldn't parse zip file %s", reponame)
+				return err
 			}
 			break
 		}
@@ -183,8 +179,11 @@ func (r *repositoryService) checkEmails(fileLocation, reponame string) {
 		}
 	}
 	if !emailExistsInResult {
-		log.Printf("None of the provided emails %s found in repo %s", r.Emails, reponame)
+		err := fmt.Errorf("None of the provided emails (%s) found in repo %s", strings.Join(r.Emails, ", "), reponame)
+		return err
 	}
+
+	return nil
 }
 
 func md5Hash(s string) string {
@@ -201,18 +200,16 @@ func (r *repositoryService) getScriptPath() string {
 // Clone repository from given url to given path
 func cloneRepository(url, path, name string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		log.Printf("Cloning %s", name)
 		_, err := git.PlainClone(path, false, &git.CloneOptions{
 			URL: url,
+			//Prognress: os.Stdout,
 			// TODO add verbose flag to show/hide these.
-			// Progress: os.Stdout,
 		})
 		if err != nil {
 			return err
 		}
 	} else {
 		// If exists, pull latest changes
-		log.Printf("Pulling latest changes for %s", name)
 		repo, err := git.PlainOpen(path)
 		if err != nil {
 			return err

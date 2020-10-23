@@ -26,12 +26,12 @@ go run . -token="{your_actual_token}" -emails="email1@example.com,email2@example
 ```
 or using the binary
 ```
-./multi_repo_extractor -token="{your_actual_token}" -emails="email1@example.com,email2@example.com"
+./multi_repo_extractor_linux -token="{your_actual_token}" -emails="email1@example.com,email2@example.com"
 ```
 ## Other options
 If you want to change the default configurations you can do it like this:
 ```
-./multi_repo_extractor -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repo_visibility="all" -provider="github.com"
+./multi_repo_extractor_linux -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repo_visibility="all" -provider="github.com"
 ```
 
 ### Obtaining Token

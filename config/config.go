@@ -10,9 +10,10 @@ import (
 // ParseFlags parses flags and environment variables
 func ParseFlags() Config {
 
-	var provider, emailString, repoVisibility, token string
+	var provider, emailString, repoVisibility, token, username string
 
 	flag.StringVar(&provider, "provider", "github.com", "Provider for repos. Only github.com is supported now.")
+	flag.StringVar(&username, "username", "", "Username for Bitbucket Cloud account. Use with bitbucket.org")
 	flag.StringVar(&token, "token", "", "For accessing repositories. You can also set this with TOKEN environment variable.")
 	flag.StringVar(&emailString, "emails", "", "Your emails which are used when making the commits. Provide a comma separated list for multiple emails (e.g. \"one@mail.com,two@email.com\")")
 	flag.StringVar(&repoVisibility, "repo_visibility", "private", "Which repos do you want to get processed? Options: all, public and private.")
@@ -41,8 +42,8 @@ func ParseFlags() Config {
 		repoInfoExtractorPath = os.Getenv("REPO_EXTRACTOR")
 	}
 
-	if provider != "github.com" {
-		log.Fatal("Only supported provider is github.com.")
+	if provider != "bitbucket.org" && len(username) == 0 {
+		log.Fatal("Username is required for Bitbucket.org authentication.")
 	}
 
 	var emails []string
@@ -61,6 +62,7 @@ func ParseFlags() Config {
 
 	return Config{
 		ProviderName:          provider,
+		Username:              username,
 		Token:                 token,
 		Emails:                emails,
 		RepoVisibility:        repoVisibility,
@@ -85,6 +87,7 @@ func getAppPath() string {
 // Config flags and paths
 type Config struct {
 	ProviderName          string
+	Username              string
 	Token                 string
 	Emails                []string
 	RepoVisibility        string

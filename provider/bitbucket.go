@@ -25,7 +25,7 @@ type BitbucketProvider struct {
 func NewBitbucketProvider(c config.Config) *BitbucketProvider {
 	return &BitbucketProvider{
 		Scheme:     "https",
-		BaseURL:    "api.bitbucket.org/2.0/repositories",
+		BaseURL:    "api.bitbucket.org",
 		Path:       "2.0/repositories",
 		Username:   c.Username,
 		Token:      c.Token,
@@ -50,6 +50,8 @@ func (p *BitbucketProvider) GetRepos() []*entity.Repository {
 		query.Set("q", "is_private = false")
 	}
 
+	requestURL.RawQuery = query.Encode()
+
 	request, err := http.NewRequest(http.MethodGet, requestURL.String(), nil)
 	if err != nil {
 		log.Fatal(err)
@@ -66,14 +68,14 @@ func (p *BitbucketProvider) GetRepos() []*entity.Repository {
 	defer response.Body.Close()
 	body, err := ioutil.ReadAll(response.Body)
 
-	var bitbucketRepos []*BitbucketRepository
+	var bitbucketRepos *BitbucketRepository
 	err = json.Unmarshal([]byte(body), &bitbucketRepos)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	repos := make([]*entity.Repository, len(bitbucketRepos))
-	for index, repo := range bitbucketRepos {
+	repos := make([]*entity.Repository, len(bitbucketRepos.Values))
+	for index, repo := range bitbucketRepos.Values {
 		repos[index] = &entity.Repository{
 			ID:       repo.UUID,
 			FullName: repo.FullName,
@@ -86,7 +88,9 @@ func (p *BitbucketProvider) GetRepos() []*entity.Repository {
 
 // BitbucketRepository response from Bitbucket API
 type BitbucketRepository struct {
-	UUID     string `json:"uuid"`
-	FullName string `json:"full_name"`
-	Name     string `json:"name"`
+	Values []struct {
+		UUID     string `json:"uuid"`
+		FullName string `json:"full_name"`
+		Name     string `json:"name"`
+	} `json:"values"`
 }

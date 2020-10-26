@@ -33,6 +33,7 @@ type repositoryService struct {
 	RepoInfoExtractorURL  string
 	ProviderName          string
 	RepoVisibility        string
+	Username              string
 	Token                 string
 	Emails                []string
 	HashedEmails          map[string]interface{}
@@ -56,6 +57,14 @@ func NewRepositoryService(c config.Config) RepositoryService {
 		SaveRepoPath:          saveRepoPath,
 		AppPath:               c.AppPath,
 	}
+
+	if c.Username == "" {
+		// default username to "git"
+		repositoryService.Username = "git"
+	} else {
+		repositoryService.Username = c.Username
+	}
+
 	hashedEmails := make(map[string]interface{}, len(c.Emails))
 	for _, email := range c.Emails {
 		hashedEmails[md5Hash(email)] = nil
@@ -107,8 +116,7 @@ func (r *repositoryService) initRepoInfoExtractor() {
 }
 
 func (r *repositoryService) clone(repo *entity.Repository) error {
-	// Username is not important, we can use anything as long as it's not an empty string
-	repoURL := fmt.Sprintf("https://%s:%s@%s/%s", "username", r.Token, r.ProviderName, repo.FullName)
+	repoURL := fmt.Sprintf("https://%s:%s@%s/%s", r.Username, r.Token, r.ProviderName, repo.FullName)
 	repoPath := r.SaveRepoPath + "/" + repo.FullName
 	err := cloneRepository(repoURL, repoPath, repo.FullName)
 	return err

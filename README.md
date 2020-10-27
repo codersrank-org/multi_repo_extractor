@@ -3,6 +3,12 @@ Wrapper for [repo_info_extractor](https://github.com/codersrank-org/repo_info_ex
 If you have a GitHub account with multiple repos (public or private) you can
 use this script to analyze them at once by providing a token.      
 
+# How it works?
+- First it is going to initialize [repo_info_extractor](https://github.com/codersrank-org/repo_info_extractor). If it is previously cloned, it will be updated.
+
+- Secondly all of your repos (with given **provider** and **visibility**) is going to be cloned or updated (if it cloned previously). All repos are going to be processed and resulting json file will be uploaded to CodersRank. Resulting file only has metadata and don't have any code from the processed repository.
+
+- Lastly, this program will open your browser with codersrank website to link your repositories with your account.
 # Installation
 ## Requirements
 - We are using docker version of [repo_info_extractor](https://github.com/codersrank-org/repo_info_extractor) so you need to have docker installed.
@@ -34,18 +40,25 @@ If you want to change the default configurations you can do it like this:
 ./multi_repo_extractor_linux -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repo_visibility="all" -provider="github.com"
 ```
 
-### Obtaining Token
-
-For GitHub, you can navigate to [this url](https://github.com/settings/tokens) to create your token. After clicking on `Generate new token` button, select the required scope (repo) and click on `Generate token` at the bottom of the page.
+## GitHub.com
+First you have to obtain a GitHub Personal Access Token (PAT).
+Navigate to [this url](https://github.com/settings/tokens) and create your token. After clicking on `Generate new token` button, select the required scope (repo) and click on `Generate token` at the bottom of the page.
 
 ![repo_scope](https://user-images.githubusercontent.com/3878783/96883860-85098200-1489-11eb-97eb-def645e1eca9.png)
-
-
+## BitBucket.org
+Right now BitBucket Cloud is supported. For authentication your have to use your username
+and password. Password must be set via the `-token` flag. Example usage:
+```
+./multi_repo_extractor_linux -token="password1" -username="username1" -emails="email1@example.com,email2@example.com" -repo_visibility="all" -provider="bitbucket.org"
+```
+When you create the a new `app password` make sure you select all the necessary scopes.
+The safest way if you create an `app password` and use it instead of your user's password.
+You can create it here: https://bitbucket.org/account/settings/app-passwords/
 ### Available flags 
 -  `-emails` string:
         Your emails which are used when making the commits. Provide a comma separeted list for multiple emails (e.g. "one@mail.com,two@email.com")
 -  `-provider` string:
-        Provider for repos. Only github.com is supported now. (default "github.com")
+        Provider for repos. Only `github.com`, `bitbucket.org` are supported now. (default "github.com")
 -  `-repo_visibility` string
         Which repos do you want to get processed? Options: all, public and private. (default "private")
 -  `-token` string
@@ -60,10 +73,3 @@ There are also two enviroment variables you can use:
 - `TOKEN`
     - If you don't want your token to be printed on the command line (for example if you running this program with a cron job on a remote server), you can set your token as an enviroment variable instead of providing it with a flag.
     - If this is set, program will ignore the token provided with flag.
-
-# How it works?
-- First it is going to initialize [repo_info_extractor](https://github.com/codersrank-org/repo_info_extractor). If it is previously cloned, it will be updated.
-
-- Secondly all of your repos (with given **provider** and **visibility**) is going to be cloned or updated (if it cloned previously). All repos are going to be processed and resulting json file will be uploaded to CodersRank. Resulting file only has metadata and don't have any code from the processed repository.
-
-- Lastly, this program will open your browser with codersrank website to link your repositories with your account.

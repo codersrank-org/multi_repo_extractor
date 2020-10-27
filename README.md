@@ -21,7 +21,7 @@ $ cd multi_repo_extractor
 $ go build .
 ```
 ## Binary
-Executables are available here: https://github.com/codersrank-org/multi_repo_extractor/releases/tag/v1.0.0
+Executables are available here: https://github.com/codersrank-org/multi_repo_extractor/releases
 
 # Usage
 ## TL;DR

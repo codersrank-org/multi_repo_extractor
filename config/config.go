@@ -12,7 +12,7 @@ func ParseFlags() Config {
 
 	var provider, emailString, repoVisibility, token, username string
 
-	flag.StringVar(&provider, "provider", "github.com", "Provider for repos. Only github.com is supported now.")
+	flag.StringVar(&provider, "provider", "github.com", "Provider for repos. Only github.com, bitbucket.org are supported now.")
 	flag.StringVar(&username, "username", "", "Username for Bitbucket Cloud account. Use with bitbucket.org")
 	flag.StringVar(&token, "token", "", "For accessing repositories. You can also set this with TOKEN environment variable.")
 	flag.StringVar(&emailString, "emails", "", "Your emails which are used when making the commits. Provide a comma separated list for multiple emails (e.g. \"one@mail.com,two@email.com\")")

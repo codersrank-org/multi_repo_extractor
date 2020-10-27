@@ -39,22 +39,6 @@ If you want to change the default configurations you can do it like this:
 ```
 ./multi_repo_extractor_linux -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repo_visibility="all" -provider="github.com"
 ```
-
-## GitHub.com
-First you have to obtain a GitHub Personal Access Token (PAT).
-Navigate to [this url](https://github.com/settings/tokens) and create your token. After clicking on `Generate new token` button, select the required scope (repo) and click on `Generate token` at the bottom of the page.
-
-![repo_scope](https://github.com/peti2001/multi_repo_extractor/blob/master/docs/github-scopes.png?raw=true)
-## BitBucket.org
-Right now BitBucket Cloud is supported. For authentication your have to use your username
-and password. Password must be set via the `-token` flag. Example usage:
-```
-./multi_repo_extractor_linux -token="password1" -username="username1" -emails="email1@example.com,email2@example.com" -repo_visibility="all" -provider="bitbucket.org"
-```
-When you create the a new `app password` make sure you select all the necessary scopes.
-![repo_scope](https://raw.githubusercontent.com/peti2001/multi_repo_extractor/master/docs/bitbucket-scope.png)
-The safest way if you create an `app password` and use it instead of your user's password.
-You can create it here: https://bitbucket.org/account/settings/app-passwords/
 ### Available flags 
 -  `-emails` string:
         Your emails which are used when making the commits. Provide a comma separeted list for multiple emails (e.g. "one@mail.com,two@email.com")
@@ -74,3 +58,18 @@ There are also two enviroment variables you can use:
 - `TOKEN`
     - If you don't want your token to be printed on the command line (for example if you running this program with a cron job on a remote server), you can set your token as an enviroment variable instead of providing it with a flag.
     - If this is set, program will ignore the token provided with flag.
+## GitHub.com
+First you have to obtain a GitHub Personal Access Token (PAT).
+Navigate to [this url](https://github.com/settings/tokens) and create your token. After clicking on `Generate new token` button, select the required scope (repo) and click on `Generate token` at the bottom of the page.
+
+![repo_scope](https://github.com/peti2001/multi_repo_extractor/blob/master/docs/github-scopes.png?raw=true)
+## BitBucket.org
+Right now BitBucket Cloud is supported. For authentication your have to use your username
+and password. Password must be set via the `-token` flag. Example usage:
+```
+./multi_repo_extractor_linux -token="password1" -username="username1" -emails="email1@example.com,email2@example.com" -repo_visibility="all" -provider="bitbucket.org"
+```
+When you create the a new `app password` make sure you select all the necessary scopes.
+![repo_scope](https://raw.githubusercontent.com/peti2001/multi_repo_extractor/master/docs/bitbucket-scope.png)
+The safest way if you create an `app password` and use it instead of your user's password.
+You can create it here: https://bitbucket.org/account/settings/app-passwords/

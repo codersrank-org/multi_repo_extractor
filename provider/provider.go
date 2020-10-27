@@ -17,6 +17,8 @@ type Provider interface {
 func NewProvider(c config.Config) Provider {
 	if c.ProviderName == "github.com" {
 		return NewGithubProvider(c)
+	} else if c.ProviderName == "bitbucket.org" {
+		return NewBitbucketProvider(c)
 	}
 	panic(c.ProviderName + " not implemented yet")
 }

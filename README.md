@@ -44,7 +44,7 @@ If you want to change the default configurations you can do it like this:
 First you have to obtain a GitHub Personal Access Token (PAT).
 Navigate to [this url](https://github.com/settings/tokens) and create your token. After clicking on `Generate new token` button, select the required scope (repo) and click on `Generate token` at the bottom of the page.
 
-![repo_scope](https://user-images.githubusercontent.com/3878783/96883860-85098200-1489-11eb-97eb-def645e1eca9.png)
+![repo_scope](https://github.com/peti2001/multi_repo_extractor/blob/master/docs/github-scopes.png?raw=true)
 ## BitBucket.org
 Right now BitBucket Cloud is supported. For authentication your have to use your username
 and password. Password must be set via the `-token` flag. Example usage:
@@ -52,6 +52,7 @@ and password. Password must be set via the `-token` flag. Example usage:
 ./multi_repo_extractor_linux -token="password1" -username="username1" -emails="email1@example.com,email2@example.com" -repo_visibility="all" -provider="bitbucket.org"
 ```
 When you create the a new `app password` make sure you select all the necessary scopes.
+![repo_scope](https://raw.githubusercontent.com/peti2001/multi_repo_extractor/master/docs/bitbucket-scope.png)
 The safest way if you create an `app password` and use it instead of your user's password.
 You can create it here: https://bitbucket.org/account/settings/app-passwords/
 ### Available flags 

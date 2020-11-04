@@ -3,50 +3,107 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
 )
 
+var appName = "multi_repo_extractor"
+var apiURL = "https://api.github.com/repos/codersrank-org/multi_repo_extractor/releases/latest"
 var currentVersion = version{
 	Major: 1,
-	Minor: 1,
+	Minor: 2,
 	Patch: 0,
 }
 
 // CheckUpdates checks github to see if there is a new version and if there is one, downloads it.
 func CheckUpdates() {
 	log.Println("Checking for new versions")
-	latestVersion, err := getLatestVersion()
+	release, err := getRelease()
 	if err != nil {
 		log.Printf("Couldn't get latest release from Github, skipping update. Error: %s", err.Error())
 		return
 	}
+	latestVersion, err := getLatestVersion(release)
+	if err != nil {
+		log.Printf("Couldn't find the latest version, skipping update. Error: %s", err.Error())
+		return
+	}
 	if shouldUpdate(currentVersion, latestVersion) {
 		log.Printf("Found new version %+v, updating...", latestVersion)
+		err := update(release)
+		if err != nil {
+			log.Printf("Couldn't download latest release. Error: %s", err.Error())
+		} else {
+			log.Println("New version downloaded. Please run the program again.")
+			os.Exit(0)
+		}
 	} else {
 		log.Printf("You already have latest version %+v, skipping update", currentVersion)
 	}
 }
 
-func getLatestVersion() (version, error) {
-	url := "https://api.github.com/repos/codersrank-org/multi_repo_extractor/releases/latest"
+func update(r *release) error {
+	os := runtime.GOOS
 
-	v := version{}
+	if os == "darwin" {
+		os = "osx"
+	}
 
-	request, err := http.NewRequest(http.MethodGet, url, nil)
+	for _, asset := range r.Assets {
+		// Found the correct binary
+		if strings.Contains(asset.Name, os) {
+			log.Printf("Downloading %s", asset.BrowserDownloadURL)
+			return download(asset.BrowserDownloadURL)
+		}
+	}
+
+	return nil
+}
+
+func download(downloadURL string) error {
+	resp, err := http.Get(downloadURL)
 	if err != nil {
-		return v, err
+		return err
+	}
+	defer resp.Body.Close()
+
+	appPath, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	filePath := appPath + "/" + appName
+
+	out, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		log.Printf("New binary saved to %s", filePath)
+	}
+	return err
+}
+
+func getRelease() (*release, error) {
+	request, err := http.NewRequest(http.MethodGet, apiURL, nil)
+	if err != nil {
+		return nil, err
 	}
 
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
-		return v, err
+		return nil, err
 	}
 	defer response.Body.Close()
 	body, err := ioutil.ReadAll(response.Body)
@@ -54,8 +111,14 @@ func getLatestVersion() (version, error) {
 	var r *release
 	err = json.Unmarshal([]byte(body), &r)
 	if err != nil {
-		return v, err
+		return nil, err
 	}
+
+	return r, nil
+}
+
+func getLatestVersion(r *release) (version, error) {
+	v := version{}
 
 	// "v" is not part of semantic versioning
 	r.Name = strings.TrimLeft(r.Name, "v")
@@ -68,15 +131,22 @@ func getLatestVersion() (version, error) {
 		return v, errors.New("Couldn't parse current version")
 	}
 
+	// Split as major, minor and patch
 	matches = strings.Split(matches[0], ".")
-
 	if len(matches) != 3 {
 		return v, errors.New("Couldn't parse current version")
 	}
 
-	v.Major, _ = strconv.Atoi(matches[0])
-	v.Minor, _ = strconv.Atoi(matches[1])
-	v.Patch, _ = strconv.Atoi(matches[2])
+	var err error
+	v.Major, err = strconv.Atoi(matches[0])
+	if err != nil {
+		return v, err
+	}
+	v.Minor, err = strconv.Atoi(matches[1])
+	if err != nil {
+		return v, err
+	}
+	v.Patch, err = strconv.Atoi(matches[2])
 
 	return v, err
 }

@@ -12,9 +12,11 @@ import (
 	"time"
 )
 
-var currentMajorVersion = 1
-var currentMinorVersion = 0
-var currentPatchVersion = 0
+var currentVersion = version{
+	Major: 1,
+	Minor: 1,
+	Patch: 0,
+}
 
 // CheckUpdates checks github to see if there is a new version and if there is one, downloads it.
 func CheckUpdates() {
@@ -24,7 +26,11 @@ func CheckUpdates() {
 		log.Printf("Couldn't get latest release from Github, skipping update. Error: %s", err.Error())
 		return
 	}
-	log.Println("latest version", latestVersion)
+	if shouldUpdate(currentVersion, latestVersion) {
+		log.Printf("Found new version %+v, updating...", latestVersion)
+	} else {
+		log.Printf("You already have latest version %+v, skipping update", currentVersion)
+	}
 }
 
 func getLatestVersion() (version, error) {
@@ -73,6 +79,22 @@ func getLatestVersion() (version, error) {
 	v.Patch, _ = strconv.Atoi(matches[2])
 
 	return v, err
+}
+
+func shouldUpdate(current, latest version) bool {
+	if latest.Major > current.Major {
+		return true
+	}
+	if latest.Major < current.Major {
+		return false
+	}
+	if latest.Minor > current.Minor {
+		return true
+	}
+	if latest.Minor < current.Minor {
+		return false
+	}
+	return latest.Patch > current.Patch
 }
 
 type version struct {

@@ -19,7 +19,7 @@ var appName = "multi_repo_extractor"
 var apiURL = "https://api.github.com/repos/codersrank-org/multi_repo_extractor/releases/latest"
 var currentVersion = version{
 	Major: 1,
-	Minor: 0,
+	Minor: 2,
 	Patch: 0,
 }
 

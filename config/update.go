@@ -19,7 +19,7 @@ var appName = "multi_repo_extractor"
 var apiURL = "https://api.github.com/repos/codersrank-org/multi_repo_extractor/releases/latest"
 var currentVersion = version{
 	Major: 1,
-	Minor: 2,
+	Minor: 0,
 	Patch: 0,
 }
 
@@ -28,25 +28,25 @@ func CheckUpdates() {
 	fmt.Println("Checking for new versions")
 	release, err := getRelease()
 	if err != nil {
-		fmt.Printf("Couldn't get latest release from Github, skipping update. Error: %s", err.Error())
+		fmt.Printf("Couldn't get latest release from Github, skipping update. Error: %s\n", err.Error())
 		return
 	}
 	latestVersion, err := getLatestVersion(release)
 	if err != nil {
-		fmt.Printf("Couldn't find the latest version, skipping update. Error: %s", err.Error())
+		fmt.Printf("Couldn't find the latest version, skipping update. Error: %s\n", err.Error())
 		return
 	}
 	if shouldUpdate(currentVersion, latestVersion) {
-		fmt.Printf("Found new version v%d.%d.%d, updating...", latestVersion.Major, latestVersion.Minor, latestVersion.Patch)
+		fmt.Printf("Found new version v%d.%d.%d, updating...\n", latestVersion.Major, latestVersion.Minor, latestVersion.Patch)
 		err := update(release)
 		if err != nil {
-			fmt.Printf("Couldn't download latest release. Error: %s", err.Error())
+			fmt.Printf("Couldn't download latest release. Error: %s\n", err.Error())
 		} else {
 			fmt.Println("New version downloaded. Please run the program again.")
 			os.Exit(0)
 		}
 	} else {
-		fmt.Printf("You already have latest version v%d.%d.%d, skipping update", currentVersion.Major, currentVersion.Minor, currentVersion.Patch)
+		fmt.Printf("You already have latest version v%d.%d.%d, skipping update\n", currentVersion.Major, currentVersion.Minor, currentVersion.Patch)
 	}
 }
 
@@ -89,7 +89,12 @@ func download(downloadURL string) error {
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		fmt.Printf("New binary saved to %s", filePath)
+		fmt.Printf("New binary saved to %s\n", filePath)
+	} else {
+		chmodErr := os.Chmod(filePath, 0755)
+		if chmodErr != nil {
+			fmt.Printf("Couldn't set execute permissions for %s\n", filePath)
+		}
 	}
 	return err
 }

@@ -3,9 +3,9 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -25,28 +25,28 @@ var currentVersion = version{
 
 // CheckUpdates checks github to see if there is a new version and if there is one, downloads it.
 func CheckUpdates() {
-	log.Println("Checking for new versions")
+	fmt.Println("Checking for new versions")
 	release, err := getRelease()
 	if err != nil {
-		log.Printf("Couldn't get latest release from Github, skipping update. Error: %s", err.Error())
+		fmt.Printf("Couldn't get latest release from Github, skipping update. Error: %s", err.Error())
 		return
 	}
 	latestVersion, err := getLatestVersion(release)
 	if err != nil {
-		log.Printf("Couldn't find the latest version, skipping update. Error: %s", err.Error())
+		fmt.Printf("Couldn't find the latest version, skipping update. Error: %s", err.Error())
 		return
 	}
 	if shouldUpdate(currentVersion, latestVersion) {
-		log.Printf("Found new version v%d.%d.%d, updating...", latestVersion.Major, latestVersion.Minor, latestVersion.Patch)
+		fmt.Printf("Found new version v%d.%d.%d, updating...", latestVersion.Major, latestVersion.Minor, latestVersion.Patch)
 		err := update(release)
 		if err != nil {
-			log.Printf("Couldn't download latest release. Error: %s", err.Error())
+			fmt.Printf("Couldn't download latest release. Error: %s", err.Error())
 		} else {
-			log.Println("New version downloaded. Please run the program again.")
+			fmt.Println("New version downloaded. Please run the program again.")
 			os.Exit(0)
 		}
 	} else {
-		log.Printf("You already have latest version v%d.%d.%d, skipping update", currentVersion.Major, currentVersion.Minor, currentVersion.Patch)
+		fmt.Printf("You already have latest version v%d.%d.%d, skipping update", currentVersion.Major, currentVersion.Minor, currentVersion.Patch)
 	}
 }
 
@@ -60,7 +60,7 @@ func update(r *release) error {
 	for _, asset := range r.Assets {
 		// Found the correct binary
 		if strings.Contains(asset.Name, os) {
-			log.Printf("Downloading %s", asset.BrowserDownloadURL)
+			fmt.Printf("Downloading %s", asset.BrowserDownloadURL)
 			return download(asset.BrowserDownloadURL)
 		}
 	}
@@ -89,7 +89,7 @@ func download(downloadURL string) error {
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		log.Printf("New binary saved to %s", filePath)
+		fmt.Printf("New binary saved to %s", filePath)
 	}
 	return err
 }

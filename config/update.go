@@ -37,7 +37,7 @@ func CheckUpdates() {
 		return
 	}
 	if shouldUpdate(currentVersion, latestVersion) {
-		log.Printf("Found new version %+v, updating...", latestVersion)
+		log.Printf("Found new version v%d.%d.%d, updating...", latestVersion.Major, latestVersion.Minor, latestVersion.Patch)
 		err := update(release)
 		if err != nil {
 			log.Printf("Couldn't download latest release. Error: %s", err.Error())
@@ -46,7 +46,7 @@ func CheckUpdates() {
 			os.Exit(0)
 		}
 	} else {
-		log.Printf("You already have latest version %+v, skipping update", currentVersion)
+		log.Printf("You already have latest version v%d.%d.%d, skipping update", currentVersion.Major, currentVersion.Minor, currentVersion.Patch)
 	}
 }
 

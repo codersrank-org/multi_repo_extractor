@@ -60,7 +60,7 @@ func update(r *release) error {
 	for _, asset := range r.Assets {
 		// Found the correct binary
 		if strings.Contains(asset.Name, os) {
-			fmt.Printf("Downloading %s", asset.BrowserDownloadURL)
+			fmt.Printf("Downloading %s\n", asset.BrowserDownloadURL)
 			return download(asset.BrowserDownloadURL)
 		}
 	}

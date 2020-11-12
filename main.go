@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	config.CheckUpdates()
 	config := config.ParseFlags()
 
 	providers := make([]provider.Provider, 1)

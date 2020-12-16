@@ -1,30 +1,30 @@
-# What is it?
+## What is it?
 Wrapper for [repo_info_extractor](https://github.com/codersrank-org/repo_info_extractor) to extract/process multiple repositories at once.
 If you have a GitHub account with multiple repos (public or private) you can
 use this script to analyze them at once by providing a token.      
 
-# How it works?
+## How it works?
 - First it is going to initialize [repo_info_extractor](https://github.com/codersrank-org/repo_info_extractor). If it is previously cloned, it will be updated.
 
 - Secondly all of your repos (with given **provider** and **visibility**) is going to be cloned or updated (if it cloned previously). All repos are going to be processed and resulting json file will be uploaded to CodersRank. Resulting file only has metadata and don't have any code from the processed repository.
 
 - Lastly, this program will open your browser with codersrank website to link your repositories with your account.
-# Installation
-## Requirements
+## Installation
+### Requirements
 - We are using docker version of [repo_info_extractor](https://github.com/codersrank-org/repo_info_extractor) so you need to have docker installed.
 - Git
 - Optional (build from source): Golang
-## From source
+### From source
 ```
 $ git clone https://github.com/codersrank-org/multi_repo_extractor
 $ cd multi_repo_extractor
 $ go build .
 ```
-## Binary
+### Binary
 Executables are available here: https://github.com/codersrank-org/multi_repo_extractor/releases
 
-# Usage
-## TL;DR
+## Usage
+### TL;DR
 This will extract all the private repos from GitHub that are available by
 the given token. 
 ```
@@ -34,12 +34,12 @@ or using the binary
 ```
 ./multi_repo_extractor_linux -token="{your_actual_token}" -emails="email1@example.com,email2@example.com"
 ```
-## Other options
+### Other options
 If you want to change the default configurations you can do it like this:
 ```
 ./multi_repo_extractor_linux -token="{your_actual_token}" -emails="email1@example.com,email2@example.com" -repo_visibility="all" -provider="github.com"
 ```
-### Available flags 
+#### Available flags 
 -  `-emails` string:
         Your emails which are used when making the commits. Provide a comma separeted list for multiple emails (e.g. "one@mail.com,two@email.com")
 -  `-provider` string:
@@ -58,12 +58,12 @@ There are also two enviroment variables you can use:
 - `TOKEN`
     - If you don't want your token to be printed on the command line (for example if you running this program with a cron job on a remote server), you can set your token as an enviroment variable instead of providing it with a flag.
     - If this is set, program will ignore the token provided with flag.
-## GitHub.com
+### GitHub.com
 First you have to obtain a GitHub Personal Access Token (PAT).
 Navigate to [this url](https://github.com/settings/tokens) and create your token. After clicking on `Generate new token` button, select the required scope (repo) and click on `Generate token` at the bottom of the page.
 
 ![repo_scope](https://github.com/peti2001/multi_repo_extractor/blob/master/docs/github-scopes.png?raw=true)
-## BitBucket.org
+### BitBucket.org
 Right now BitBucket Cloud is supported. For authentication your have to use your username
 and password. Password must be set via the `-token` flag. Example usage:
 ```

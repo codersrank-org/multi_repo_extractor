@@ -1,5 +1,5 @@
 # DEPRECATED
-This repo is not supported anymore. It will be merged with the repo_info_extracotor.
+This repo is deprecated and the generated artefact is not supported anymore. It is going to be merged with the `repo_info_extractor`. 
 ## What is it?
 Wrapper for [repo_info_extractor](https://github.com/codersrank-org/repo_info_extractor) to extract/process multiple repositories at once.
 If you have a GitHub account with multiple repos (public or private) you can
